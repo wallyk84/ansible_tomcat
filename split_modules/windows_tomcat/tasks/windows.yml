@@ -1,0 +1,57 @@
+---
+# tasks file for apache
+
+- name: Download Tomcat
+  win_get_url:
+    url: "{{ tomcat_windows_source_url }}"
+    dest: 'c:\'
+
+- name: Create directory structure
+  win_file:
+    path: 'C:\tomcat'
+    state: directory
+
+- name: Unzip tomcat
+  win_unzip:
+    src: C:\apache-tomcat-9.0.43-windows-x64.zip
+    dest: 'C:\tomcat'
+
+- name: Add TOMCAT_HOME Env
+  win_path:
+    name: CATALINA_HOME
+    elements: 'C:\tomcat\apache-tomcat-9.0.43'
+    scope: machine
+    state: present
+
+- name: Add TOMCAT_BIN Env
+  win_path:
+    name: PATH
+    elements: 'C:\tomcat\apache-tomcat-9.0.43\bin'
+    scope: machine
+    state: present
+
+- name: Check if Servcie is Installed
+  win_service:
+    name: tomcat9
+  register: service_status
+
+- debug: msg="{{service_status.exists}}"
+
+- name: install tomcat9
+  win_shell: "service install tomcat9"
+  args:
+    executable: cmd
+  when: service_status.exists|bool == false
+
+- name: start service
+  win_service:
+    name: tomcat9
+    state: started
+
+- name: check TOMCAT shell
+  win_shell: "tomcat9 version"
+  args:
+    executable: cmd
+  register: tomcat_version
+
+- debug: msg="{{tomcat_version.stderr_lines}}"

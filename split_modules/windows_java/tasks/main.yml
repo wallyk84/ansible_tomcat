@@ -1,0 +1,6 @@
+---
+# tasks file for apache
+
+- name: Installing Apache on Windows
+  import_tasks: windows.yml
+  when: ansible_facts['os_family'] == 'Windows'

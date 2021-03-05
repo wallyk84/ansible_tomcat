@@ -1,0 +1,48 @@
+---
+# tasks file for apache
+
+- name: Create directory structure
+  win_file:
+    path: C:\Users\Administrator\Java
+    state: directory
+
+- name: Download Java
+  win_get_url:
+    url: "{{ java_source_url }}"
+    dest: 'C:\Users\Administrator\Java'
+
+- name: install Java
+  win_package:
+    path: 'C:\Users\Administrator\Java\OpenJDK8U-jdk_x64_windows_hotspot_8u282b08.msi'
+    product_id: jdk-8u281
+    arguments:
+      - /quiet
+    state: present 
+
+- name: Add JAVA_HOME Env
+  win_path:
+    name: JAVA_HOME
+    elements: 'C:\Program Files\AdoptOpenJDK\jdk-8.0.282.8-hotspot'
+    scope: machine
+    state: present
+
+- name: Add JAVA_BIN Env
+  win_path:
+    name: PATH
+    elements: 'C:\Program Files\AdoptOpenJDK\jdk-8.0.282.8-hotspot\bin'
+    scope: machine
+    state: present
+
+- name: Reboot Windows Server
+  win_reboot:
+    msg: "Restart the server 3 seconds later"
+    post_reboot_delay: 3
+    test_command: whoami
+
+- name: check jdk shell
+  win_shell: "java -version"
+  args:
+    executable: cmd
+  register: java_version
+
+- debug: msg="{{java_version.stderr_lines}}"
